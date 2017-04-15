@@ -14,7 +14,7 @@ public class LinkedBlockingQueue<E> implements BlockingQueue<E> {
     private final int capacity;
     private final Object mutex = new Object();
     private volatile int size;
-    private Node<E> head;
+    private Node<E> head, tail;
 
     public LinkedBlockingQueue() {
         this(Integer.MAX_VALUE);
@@ -112,14 +112,19 @@ public class LinkedBlockingQueue<E> implements BlockingQueue<E> {
     }
 
     private void enqueue(E e) {
-        head = new Node<>(e, head);
+        Node<E> tmp = new Node<>(e, null);
+        if (head == null) head = tail = tmp;
+        else {
+            tail.next = tmp;
+            tail = tail.next;
+        }
         size++;
         mutex.notify();
     }
 
     private static class Node<E> {
         final E data;
-        final Node<E> next;
+        Node<E> next;
 
         private Node(E data, Node<E> next) {
             this.data = data;
